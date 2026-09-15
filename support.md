@@ -27,7 +27,7 @@ with you; a fresh install with no restore starts clean.
 
 ## Contact
 
-Email: (a dedicated support address will be published here before release)
+Open a GitHub issue: <https://github.com/lubiqet/leyden-site/issues>
 
 We aim to reply within a few business days. Please include your device model and
 iOS version.

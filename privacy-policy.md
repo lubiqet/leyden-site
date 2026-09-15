@@ -44,4 +44,4 @@ controlled by you through your device settings.
 If a future version adds a server feature (e.g. a leaderboard), this policy will
 be updated before that feature ships and will describe exactly what changes.
 
-Contact: see the app's Support page.
+Contact: open a GitHub issue at <https://github.com/lubiqet/leyden-site/issues>.

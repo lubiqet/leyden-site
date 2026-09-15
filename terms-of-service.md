@@ -57,4 +57,4 @@ conflict-of-law rules, and the courts of the Czech Republic have jurisdiction,
 except where mandatory consumer-protection law provides otherwise.
 
 ## 10. Contact
-Questions about these terms: see the app's Support page.
+Questions about these terms: open a GitHub issue at <https://github.com/lubiqet/leyden-site/issues>.
