@@ -1,6 +1,8 @@
-# LEYDEN — Privacy Policy
-
-_Last updated: 15 September 2026._
+---
+layout: legal
+title: Privacy Policy
+subtitle: Last updated 15 September 2026
+---
 
 ## The short version
 

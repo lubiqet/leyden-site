@@ -1,4 +1,8 @@
-# LEYDEN — Support
+---
+layout: legal
+title: Support
+subtitle: Get help with LEYDEN
+---
 
 LEYDEN is a free daily puzzle. Here's how to get help.
 
@@ -15,7 +19,7 @@ Everyone gets the same daily board. For unlimited play, open the ⋯ menu and ch
 
 **Is my data collected?**
 No. LEYDEN collects nothing and sends nothing off your device. See the
-[Privacy Policy](./privacy-policy.md).
+[Privacy Policy](privacy-policy).
 
 **How do I turn sound, haptics, or the daily reminder on/off?**
 ⋯ menu → toggles for **Sound**, **Haptics**, and **Daily reminder**. The daily

@@ -1,6 +1,8 @@
-# LEYDEN — Terms of Service
-
-_Last updated: 15 September 2026._
+---
+layout: legal
+title: Terms of Service
+subtitle: Last updated 15 September 2026
+---
 
 By downloading or using LEYDEN ("the app"), you agree to these terms. If you do
 not agree, do not use the app.
@@ -25,7 +27,7 @@ gain unauthorised access to any related service.
 
 ## 4. Your data
 The app collects nothing about you and sends nothing off your device (see the
-[Privacy Policy](./privacy-policy.md)). Your progress lives on your device and,
+[Privacy Policy](privacy-policy)). Your progress lives on your device and,
 if you enable it, in your own platform cloud backup. Deleting the app removes
 local data.
 
