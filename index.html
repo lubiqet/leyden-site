@@ -77,11 +77,12 @@
 
   /* animated ember background */
   .ember{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
-  .ember b{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:drift 22s ease-in-out infinite}
-  .ember b:nth-child(1){width:640px;height:640px;left:-120px;top:-160px;background:#5a3a12;animation-delay:0s}
-  .ember b:nth-child(2){width:520px;height:520px;right:-140px;top:120px;background:#3a2a3a;animation-delay:-7s}
-  .ember b:nth-child(3){width:560px;height:560px;left:30%;bottom:-220px;background:#123a3a;animation-delay:-13s}
-  @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.15)}}
+  .ember b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.42;will-change:transform;
+    animation:drift 30s ease-in-out infinite}
+  .ember b:nth-child(1){width:520px;height:520px;left:-120px;top:-160px;background:#5a3a12;animation-delay:0s}
+  .ember b:nth-child(2){width:440px;height:440px;right:-140px;top:120px;background:#3a2a3a;animation-delay:-11s}
+  .ember b:nth-child(3){width:460px;height:460px;left:30%;bottom:-220px;background:#123a3a;animation-delay:-20s}
+  @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(28px,-22px)}}
   .grid-bg{position:fixed;inset:0;z-index:-1;background:
     radial-gradient(1200px 600px at 50% -10%, rgba(255,180,80,.10), transparent 60%);}
 
@@ -307,24 +308,33 @@
   },{threshold:.14});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // Subtle parallax on the hero phone
+  // Subtle parallax on the hero phone (throttled to one update per frame,
+  // pointer only, and skipped on touch / reduced-motion to avoid jank).
   const phone = document.querySelector('.phone');
-  if(phone && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+  if(phone && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    let px=0, py=0, queued=false;
     addEventListener('pointermove',(e)=>{
-      const x=(e.clientX/innerWidth-.5), y=(e.clientY/innerHeight-.5);
-      phone.style.transform = `rotateY(${-6 + x*8}deg) rotateX(${ -y*6 }deg) translateY(-4px)`;
-    });
+      px=(e.clientX/innerWidth-.5); py=(e.clientY/innerHeight-.5);
+      if(!queued){ queued=true; requestAnimationFrame(()=>{
+        phone.style.transform = `rotateY(${-6 + px*8}deg) rotateX(${ -py*6 }deg) translateY(-4px)`;
+        queued=false;
+      }); }
+    },{passive:true});
   }
 
-  // Ambient board demo — six colours/shapes, occasional line "match" glow + pop
+  // Ambient board demo — six colours/shapes, occasional match pop.
+  // Cheap by design: DPR capped, no per-tile shadowBlur, and the render loop
+  // only does work while a pop is animating (idle = zero CPU). Pauses off-screen.
   (function(){
     const cv=document.getElementById('demo-canvas'); if(!cv) return;
-    const ctx=cv.getContext('2d'); const N=9; let S=cv.width/N;
+    const ctx=cv.getContext('2d'); const N=9;
     const cols=['#ff4d4d','#3fd060','#4d8fff','#c24dff','#20d0d0','#f0e040'];
     const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function resize(){ const w=cv.clientWidth; cv.width=cv.height=w*devicePixelRatio; S=cv.width/N; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    const DPR=Math.min(devicePixelRatio||1, 1.5);
+    function resize(){ const w=Math.round(cv.clientWidth*DPR); cv.width=cv.height=w;
+      ctx.setTransform(DPR,0,0,DPR,0,0); dirty=true; }
     let grid=[]; for(let i=0;i<N*N;i++) grid.push((Math.random()*6)|0);
-    let pop=[]; // {i, t}
+    let pop=[], dirty=true, visible=true, running=false;
     function shape(x,y,r,k){
       ctx.beginPath();
       if(k===0){ctx.arc(x,y,r,0,7);}
@@ -335,34 +345,40 @@
       else{ctx.moveTo(x,y+r);ctx.lineTo(x+r,y-r);ctx.lineTo(x-r,y-r);ctx.closePath();}
     }
     function draw(){
-      const w=cv.width/devicePixelRatio; ctx.clearRect(0,0,w,w);
-      const s=w/N;
+      const w=cv.width/DPR, s=w/N; ctx.clearRect(0,0,w,w);
       for(let r=0;r<N;r++)for(let c=0;c<N;c++){
-        const i=r*N+c, k=grid[i]; const x=c*s+s/2,y=r*s+s/2;
-        const pi=pop.find(p=>p.i===i); const scale=pi?(1+.5*Math.sin(pi.t*Math.PI)):1;
-        ctx.fillStyle=cols[k];
-        ctx.globalAlpha=pi?.7+.3*(1-pi.t):1;
-        ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.translate(-x,-y);
-        shape(x,y,s*0.32,k); ctx.shadowColor=cols[k]; ctx.shadowBlur=pi?18:6; ctx.fill();
-        ctx.restore();
+        const i=r*N+c,k=grid[i],x=c*s+s/2,y=r*s+s/2;
+        const pi=pop.length?pop.find(p=>p.i===i):null;
+        const scale=pi?(1+.45*Math.sin(pi.t*Math.PI)):1;
+        ctx.globalAlpha=pi?.65+.35*(1-pi.t):1; ctx.fillStyle=cols[k];
+        if(scale!==1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.translate(-x,-y);shape(x,y,s*0.32,k);ctx.fill();ctx.restore();}
+        else{shape(x,y,s*0.32,k);ctx.fill();}
       }
-      ctx.globalAlpha=1; ctx.shadowBlur=0;
+      ctx.globalAlpha=1;
     }
     function trigger(){
-      // pick a random horizontal run of 3, set same colour, then pop it
-      const r=(Math.random()*N)|0, c=(Math.random()*(N-2))|0, k=(Math.random()*6)|0;
-      const idx=[r*N+c,r*N+c+1,r*N+c+2]; idx.forEach(i=>grid[i]=k);
-      setTimeout(()=>{ idx.forEach(i=>pop.push({i,t:0})); },420);
+      if(!visible) return;
+      const r=(Math.random()*N)|0,c=(Math.random()*(N-2))|0,k=(Math.random()*6)|0;
+      const idx=[r*N+c,r*N+c+1,r*N+c+2]; idx.forEach(i=>grid[i]=k); dirty=true;
+      setTimeout(()=>{ idx.forEach(i=>pop.push({i,t:0})); kick(); },420);
+      kick();
     }
-    let last=performance.now();
+    let last=0;
     function loop(now){
-      const dt=(now-last)/1000; last=now;
-      pop.forEach(p=>p.t+=dt*1.6);
-      pop=pop.filter(p=>{ if(p.t>=1){ grid[p.i]=(Math.random()*6)|0; return false;} return true; });
-      draw(); requestAnimationFrame(loop);
+      const dt=last?Math.min((now-last)/1000,.05):.016; last=now;
+      if(pop.length){
+        pop.forEach(p=>p.t+=dt*1.8);
+        pop=pop.filter(p=>{ if(p.t>=1){ grid[p.i]=(Math.random()*6)|0; return false;} return true; });
+        dirty=true;
+      }
+      if(dirty){ draw(); dirty=false; }
+      if(pop.length){ requestAnimationFrame(loop); } else { running=false; last=0; }
     }
-    resize(); addEventListener('resize',resize); draw();
-    if(!reduce){ requestAnimationFrame(loop); setInterval(trigger, 900); }
+    function kick(){ if(!running){ running=true; requestAnimationFrame(loop); } }
+    // pause the ambient triggers when the canvas is scrolled out of view
+    new IntersectionObserver(es=>{ visible=es[0].isIntersecting; },{threshold:.05}).observe(cv);
+    resize(); addEventListener('resize',resize,{passive:true}); draw();
+    if(!reduce){ setInterval(trigger, 1600); }
   })();
 </script>
 </body>
