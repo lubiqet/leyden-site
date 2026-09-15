@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lubiqet.github.io/leyden-site/sitemap.xml
